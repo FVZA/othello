@@ -4,6 +4,9 @@
 #include <iostream>
 #include "common.hpp"
 #include "board.hpp"
+#include <vector>
+#include <cmath>
+#include <math.h> 
 using namespace std;
 
 class Player {
@@ -20,6 +23,10 @@ public:
     Board board;
     Side side;
     Side opp_side;
+    
+    Move *heuristic(std::vector<Move*> moves);
+    int adjacent(Move* pt1, Move pt2);
+    bool isCorner(Move* move);
 };
 
 #endif
