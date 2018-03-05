@@ -39,42 +39,43 @@ Player::~Player() {
  * The move returned must be legal; if there are no valid moves for your side,
  * return nullptr.
  */
-Move *Player::doMove(Move *opponentsMove, int msLeft) 
+std::vector<Move*> Player::getMoves(Board b)
 {
-    /*
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's opponents move before calculating your own move
-     */
-    
-	if(opponentsMove != nullptr)
-		board.doMove(opponentsMove, opp_side);
-     
     std::vector<Move*> moves;
-    bool found = false;
-    
     for(int i = 0; i < 8; i++)
     {
 		for(int j = 0; j < 8; j++)
 		{
 			Move *move = new Move(i, j);
-			if(board.checkMove(move, side))
+			if(b.checkMove(move, side))
 			{
 				moves.push_back(move);
-				found = true;
-				//board.doMove(move, side);
-				//return move;
 			}	
 		}
 	}
+	return moves; 
+}
+
+Move *Player::doMove(Move *opponentsMove, int msLeft) 
+{
+    /*
+     * TODO: Implement how moves your AI should play here. You should first
+     * process the opponent's move before calculating your own move
+     */
+    
+	if(opponentsMove != nullptr)
+		board.doMove(opponentsMove, opp_side);
+	std::vector<Move*> moves = getMoves(board); 
+	if (moves.size() == 0) return nullptr; 
 	
-	if(!found)
-		return nullptr;
-	
+	//Random
+	//return moves[0]; 
+
+	//Heuristic 
 	Move *best = heuristic(moves);
 	board.doMove(best, side);
+	return best;    
 	
-	return best;
-    
     return nullptr;
 }
 
@@ -88,18 +89,22 @@ Move *Player::heuristic(std::vector<Move*> moves)
 		Board *copy = board.copy();
 		copy->doMove(moves[i], side);
 		
+		//difference between player's and opponent's stones if move is made 
 		int score = copy->count(side) - copy->count(opp_side);	
-		int x = moves[i]->x;
-		int y = moves[i]->y;
+
+		//number of moves possible if move is made 
+		std::vector<Move*> new_moves = getMoves(*copy); 
+		score += new_moves.size(); 
 		
+		//considers corners and edges captured by player and opponent if move is made 
 		if (isCorner(moves[i]))
-			score = score + 10; 
-		else if(x == 0 || x == 7 || y == 0 || y == 7)
-			score = score + 7;
+			score = score + 40; 
 		else if (adjacent(moves[i], Move(0,0)) == 2|| adjacent(moves[i], Move(7,0)) == 2|| adjacent(moves[i], Move(0,7)) == 2|| adjacent(moves[i], Move(7,7)) == 2)
-			score = score - 10;
+			score = score - 30;
 		else if (adjacent(moves[i], Move(0,0)) == 1|| adjacent(moves[i], Move(7,0)) == 1|| adjacent(moves[i], Move(0,7)) == 1|| adjacent(moves[i], Move(7,7)) == 1)
-			score = score - 7;
+			score = score - 40;
+		else if(moves[i]->x == 0 || moves[i]->x == 7 || moves[i]->y == 0 || moves[i]->y == 7)
+			score = score + 20;
 		
 		if(score > bestscore)
 		{
