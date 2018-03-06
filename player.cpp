@@ -39,7 +39,7 @@ Player::~Player() {
  * The move returned must be legal; if there are no valid moves for your side,
  * return nullptr.
  */
-std::vector<Move*> Player::getMoves(Board b)
+std::vector<Move*> Player::getMoves(Board b, Side s)
 {
     std::vector<Move*> moves;
     for(int i = 0; i < 8; i++)
@@ -47,7 +47,7 @@ std::vector<Move*> Player::getMoves(Board b)
 		for(int j = 0; j < 8; j++)
 		{
 			Move *move = new Move(i, j);
-			if(b.checkMove(move, side))
+			if(b.checkMove(move, s))
 			{
 				moves.push_back(move);
 			}	
@@ -61,64 +61,127 @@ Move *Player::doMove(Move *opponentsMove, int msLeft)
 
 	if(opponentsMove != nullptr)
 		board.doMove(opponentsMove, opp_side);
-	std::vector<Move*> moves = getMoves(board); 
+	std::vector<Move*> moves = getMoves(board, side); 
 	if (moves.size() == 0) return nullptr; 
 	
 	//Random
 	//return moves[0]; 
 
 	//Heuristic 
-	Move *best = heuristic(moves, testingMinimax);
+	//Move *best = heuristic(moves);
+	//board.doMove(best, side);
+	//return best;    
+	
+	//Minimax
+	int high = -99999;
+	Move *best = moves[0];
+	
+	for(unsigned int i = 0; i < moves.size(); i++)
+	{
+		int score = minimax(board, moves[i], 1);
+		if(score > high)
+		{
+			high = score;
+			best = moves[i];
+			
+		}
+		
+		std::cerr << score << std::endl;
+	}
+	
 	board.doMove(best, side);
-	return best;    
+	
+	return best;
+	
 }
 
-int Player::getScore(Move* move) 
+int Player::minimax(Board b, Move* move, int depth)
+{	
+	Side s = side;
+	if(depth % 2 == 0)
+		s = opp_side;
+		
+	if(depth == 0)
+	{
+		std::cerr << " " << simpleScore(b, move, side) << std::endl;
+		return simpleScore(b, move, side);
+		//return getScore(b, move, side);
+	}
+		
+	Board *copy = b.copy();
+	copy->doMove(move, s);
+	
+	s = opp_side;
+	if(depth % 2 == 0)
+		s = side;	
+	
+	std::vector<Move*> moves = getMoves(*copy, s);
+	
+	int low = 99999;
+	for(unsigned int i = 0; i < moves.size(); i++)
+	{
+		int score = minimax(*copy, moves[i], depth - 1);
+		if(score < low)
+		{
+			low = score;
+		}
+	}
+	
+	return low;
+	
+}
+
+int Player::simpleScore(Board b, Move* move, Side s)
 {
-	Board *copy = board.copy();
-	copy->doMove(moves[i], side);
+	Board *copy = b.copy();
+	copy->doMove(move, s);
+		
+	//difference between player's and opponent's stones if move is made 
+	int score = copy->count(side) - copy->count(opp_side);	
+	return score;	
+	
+}
+
+int Player::getScore(Board b, Move* move, Side s) 
+{
+	Board *copy = b.copy();
+	copy->doMove(move, s);
 		
 	//difference between player's and opponent's stones if move is made 
 	int score = copy->count(side) - copy->count(opp_side);	
 
 	//number of moves possible if move is made 
-	std::vector<Move*> new_moves = getMoves(*copy); 
+	std::vector<Move*> new_moves = getMoves(*copy, s); 
 	score += new_moves.size()/5; 
 		
 	//considers corners and edges captured by player and opponent if move is made 
-	if (isCorner(moves[i]))
+	if (isCorner(move))
 		score = score + 8; 
-	else if (adjacent(moves[i], Move(0,0)) == 2|| adjacent(moves[i], Move(7,0)) == 2|| adjacent(moves[i], Move(0,7)) == 2|| adjacent(moves[i], Move(7,7)) == 2)
+	else if (adjacent(move, Move(0,0)) == 2|| adjacent(move, Move(7,0)) == 2|| adjacent(move, Move(0,7)) == 2|| adjacent(move, Move(7,7)) == 2)
 		score = score - 8;
-	else if (adjacent(moves[i], Move(0,0)) == 1|| adjacent(moves[i], Move(7,0)) == 1|| adjacent(moves[i], Move(0,7)) == 1|| adjacent(moves[i], Move(7,7)) == 1)
+	else if (adjacent(move, Move(0,0)) == 1|| adjacent(move, Move(7,0)) == 1|| adjacent(move, Move(0,7)) == 1|| adjacent(move, Move(7,7)) == 1)
 		score = score - 10;
-	else if(moves[i]->x == 0 || moves[i]->x == 7 || moves[i]->y == 0 || moves[i]->y == 7)
+	else if(move->x == 0 || move->x == 7 || move->y == 0 || move->y == 7)
 		score = score + 3; 
 	
 	return score; 
 }
 
-Move *Player::heuristic(std::vector<Move*> moves, bool testingMinimax)
+Move *Player::heuristic(std::vector<Move*> moves)
 {
-	if (!testingMinimax)
+	int bestscore = -9999999;
+	Move *best = nullptr;
+	for (unsigned int i = 0; i < moves.size(); i++)
 	{
-		int bestscore = -9999999;
-		Move *best = nullptr;
-		for (unsigned int i = 0; i < moves.size(); i++)
+		int score = getScore(board, moves[i], side); 
+		
+		if (score > bestscore)
 		{
-			score = getScore(moves[i]); 
-			if (score > bestscore)
-			{
-				bestscore = score; 
-				best = moves[i];
-			}
+			bestscore = score; 
+			best = moves[i];
 		}
-		return bestscore; 
 	}
-	if (testingMinimax)
-	{
-		//get scores if 
-	}
+	return best; 
 }
 
 bool Player::isCorner(Move* move)

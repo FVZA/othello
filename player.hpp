@@ -24,11 +24,14 @@ public:
     Side side;
     Side opp_side;
     
-	int getScore(Move* move);
+	int getScore(Board b, Move* move, Side s);
+	int simpleScore(Board b, Move* move, Side s);
     Move *heuristic(std::vector<Move*> moves);
     int adjacent(Move* pt1, Move pt2);
     bool isCorner(Move* move);
-	std::vector<Move*> getMoves(Board b);
+	std::vector<Move*> getMoves(Board b, Side s);
+	
+	int minimax(Board b, Move* move, int depth);
 };
 
 #endif
