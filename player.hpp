@@ -24,6 +24,7 @@ public:
     Side side;
     Side opp_side;
     
+	int getScore(Move* move);
     Move *heuristic(std::vector<Move*> moves);
     int adjacent(Move* pt1, Move pt2);
     bool isCorner(Move* move);
