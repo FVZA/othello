@@ -68,47 +68,57 @@ Move *Player::doMove(Move *opponentsMove, int msLeft)
 	//return moves[0]; 
 
 	//Heuristic 
-	Move *best = heuristic(moves);
+	Move *best = heuristic(moves, testingMinimax);
 	board.doMove(best, side);
 	return best;    
 }
 
-Move *Player::heuristic(std::vector<Move*> moves)
+int Player::getScore(Move* move) 
 {
-	int bestscore = -9999999;
-	Move *best = nullptr;
-	
-	for(unsigned int i = 0; i < moves.size(); i++)
-	{
-		Board *copy = board.copy();
-		copy->doMove(moves[i], side);
+	Board *copy = board.copy();
+	copy->doMove(moves[i], side);
 		
-		//difference between player's and opponent's stones if move is made 
-		int score = copy->count(side) - copy->count(opp_side);	
+	//difference between player's and opponent's stones if move is made 
+	int score = copy->count(side) - copy->count(opp_side);	
 
-		//number of moves possible if move is made 
-		std::vector<Move*> new_moves = getMoves(*copy); 
-		score += new_moves.size()/5; 
+	//number of moves possible if move is made 
+	std::vector<Move*> new_moves = getMoves(*copy); 
+	score += new_moves.size()/5; 
 		
-		//considers corners and edges captured by player and opponent if move is made 
-		if (isCorner(moves[i]))
-			score = score + 8; 
-		else if (adjacent(moves[i], Move(0,0)) == 2|| adjacent(moves[i], Move(7,0)) == 2|| adjacent(moves[i], Move(0,7)) == 2|| adjacent(moves[i], Move(7,7)) == 2)
-			score = score - 8;
-		else if (adjacent(moves[i], Move(0,0)) == 1|| adjacent(moves[i], Move(7,0)) == 1|| adjacent(moves[i], Move(0,7)) == 1|| adjacent(moves[i], Move(7,7)) == 1)
-			score = score - 10;
-		else if(moves[i]->x == 0 || moves[i]->x == 7 || moves[i]->y == 0 || moves[i]->y == 7)
-			score = score + 3;
-		
-		if(score > bestscore)
+	//considers corners and edges captured by player and opponent if move is made 
+	if (isCorner(moves[i]))
+		score = score + 8; 
+	else if (adjacent(moves[i], Move(0,0)) == 2|| adjacent(moves[i], Move(7,0)) == 2|| adjacent(moves[i], Move(0,7)) == 2|| adjacent(moves[i], Move(7,7)) == 2)
+		score = score - 8;
+	else if (adjacent(moves[i], Move(0,0)) == 1|| adjacent(moves[i], Move(7,0)) == 1|| adjacent(moves[i], Move(0,7)) == 1|| adjacent(moves[i], Move(7,7)) == 1)
+		score = score - 10;
+	else if(moves[i]->x == 0 || moves[i]->x == 7 || moves[i]->y == 0 || moves[i]->y == 7)
+		score = score + 3; 
+	
+	return score; 
+}
+
+Move *Player::heuristic(std::vector<Move*> moves, bool testingMinimax)
+{
+	if (!testingMinimax)
+	{
+		int bestscore = -9999999;
+		Move *best = nullptr;
+		for (unsigned int i = 0; i < moves.size(); i++)
 		{
-			bestscore = score;
-			best = moves[i];
-		}	
+			score = getScore(moves[i]); 
+			if (score > bestscore)
+			{
+				bestscore = score; 
+				best = moves[i];
+			}
+		}
+		return bestscore; 
 	}
-	
-	return best;
-	
+	if (testingMinimax)
+	{
+		//get scores if 
+	}
 }
 
 bool Player::isCorner(Move* move)
