@@ -68,31 +68,32 @@ Move *Player::doMove(Move *opponentsMove, int msLeft)
 	//return moves[0]; 
 
 	//Heuristic 
-	//Move *best = heuristic(moves);
-	//board.doMove(best, side);
-	//return best;    
-	
-	//Minimax
-	int high = -99999;
-	Move *best = moves[0];
-	
-	for(unsigned int i = 0; i < moves.size(); i++)
+	if(!testingMinimax)
 	{
-		int score = minimax(board, moves[i], 1);
-		if(score > high)
+		Move *best = heuristic(moves);
+		board.doMove(best, side);
+		return best;    
+	}
+	else
+	{	
+	//Minimax
+		int high = -99999;
+		Move *best = moves[0];
+		
+		for(unsigned int i = 0; i < moves.size(); i++)
 		{
-			high = score;
-			best = moves[i];
-			
+			int score = minimax(board, moves[i], 1);
+			if(score > high)
+			{
+				high = score;
+				best = moves[i];
+				
+			}
 		}
 		
-		std::cerr << score << std::endl;
-	}
-	
-	board.doMove(best, side);
-	
-	return best;
-	
+		board.doMove(best, side);
+		return best;
+	}	
 }
 
 int Player::minimax(Board b, Move* move, int depth)
@@ -103,8 +104,9 @@ int Player::minimax(Board b, Move* move, int depth)
 		
 	if(depth == 0)
 	{
-		std::cerr << " " << simpleScore(b, move, s) << std::endl;
 		return simpleScore(b, move, s);
+		
+		// this uses more complicated score solver
 		//return getScore(b, move, side);
 	}
 		
@@ -181,6 +183,7 @@ Move *Player::heuristic(std::vector<Move*> moves)
 			best = moves[i];
 		}
 	}
+	
 	return best; 
 }
 
