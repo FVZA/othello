@@ -58,11 +58,7 @@ std::vector<Move*> Player::getMoves(Board b)
 
 Move *Player::doMove(Move *opponentsMove, int msLeft) 
 {
-    /*
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's move before calculating your own move
-     */
-    
+
 	if(opponentsMove != nullptr)
 		board.doMove(opponentsMove, opp_side);
 	std::vector<Move*> moves = getMoves(board); 
@@ -75,8 +71,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft)
 	Move *best = heuristic(moves);
 	board.doMove(best, side);
 	return best;    
-	
-    return nullptr;
 }
 
 Move *Player::heuristic(std::vector<Move*> moves)
@@ -94,17 +88,17 @@ Move *Player::heuristic(std::vector<Move*> moves)
 
 		//number of moves possible if move is made 
 		std::vector<Move*> new_moves = getMoves(*copy); 
-		score += new_moves.size(); 
+		score += new_moves.size()/5; 
 		
 		//considers corners and edges captured by player and opponent if move is made 
 		if (isCorner(moves[i]))
-			score = score + 40; 
+			score = score + 8; 
 		else if (adjacent(moves[i], Move(0,0)) == 2|| adjacent(moves[i], Move(7,0)) == 2|| adjacent(moves[i], Move(0,7)) == 2|| adjacent(moves[i], Move(7,7)) == 2)
-			score = score - 30;
+			score = score - 8;
 		else if (adjacent(moves[i], Move(0,0)) == 1|| adjacent(moves[i], Move(7,0)) == 1|| adjacent(moves[i], Move(0,7)) == 1|| adjacent(moves[i], Move(7,7)) == 1)
-			score = score - 40;
+			score = score - 10;
 		else if(moves[i]->x == 0 || moves[i]->x == 7 || moves[i]->y == 0 || moves[i]->y == 7)
-			score = score + 20;
+			score = score + 3;
 		
 		if(score > bestscore)
 		{
