@@ -103,8 +103,8 @@ int Player::minimax(Board b, Move* move, int depth)
 		
 	if(depth == 0)
 	{
-		std::cerr << " " << simpleScore(b, move, side) << std::endl;
-		return simpleScore(b, move, side);
+		std::cerr << " " << simpleScore(b, move, s) << std::endl;
+		return simpleScore(b, move, s);
 		//return getScore(b, move, side);
 	}
 		
